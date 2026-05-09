@@ -8,7 +8,7 @@ const REJOIN_DELAY    = 1;  // How long to wait before rejoining after leaving (
 const DEPLOY_SPACING  = 1;   // Delay between each bot joining to prevent server kicks
 
 // --- [ 2. GAME DATA ] ---
-const SERVER_URL      = 'wss://game-server-VFI56.voxiom.io'; 
+const SERVER_URL      = 'wss://game-server-i4esm.voxiom.io'; 
 const JOIN_HEX        = '0387010205';
 const BASE_HEX        = '00000022e03fcd35ddbfc90fdb460b28007f7f0000';
 const SELECT_4_HEX    = '0000001466bf0320cbbf812dfb45a3135e7f7f010003';
