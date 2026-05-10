@@ -2,13 +2,13 @@
 const WebSocket = require('ws');
 
 // --- [ 1. CONFIGURATION VARIABLES ] ---
-const TOTAL_BOTS      = 20;    // How many soldiers to deploy
-const SESSION_LENGTH  = 20000; // How long they stay (in milliseconds). 60000 = 1 minute.
-const REJOIN_DELAY    = 1;  // How long to wait before rejoining after leaving (5 seconds)
-const DEPLOY_SPACING  = 1;   // Delay between each bot joining to prevent server kicks
+const TOTAL_BOTS      = 150;    // How many soldiers to deploy
+const SESSION_LENGTH  = 600; // How long they stay (in milliseconds). 60000 = 1 minute.
+const REJOIN_DELAY    = 0;  // How long to wait before rejoining after leaving (5 seconds)
+const DEPLOY_SPACING  = 0;   // Delay between each bot joining to prevent server kicks
 
 // --- [ 2. GAME DATA ] ---
-const SERVER_URL      = 'wss://game-server-pq9mc.voxiom.io'; 
+const SERVER_URL      = 'wss://game-server-VFI56.voxiom.io'; 
 const JOIN_HEX        = '0387010205';
 const BASE_HEX        = '00000022e03fcd35ddbfc90fdb460b28007f7f0000';
 const SELECT_4_HEX    = '0000001466bf0320cbbf812dfb45a3135e7f7f010003';
