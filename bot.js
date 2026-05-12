@@ -2,7 +2,7 @@
 const WebSocket = require('ws');
 
 // --- [ 1. CONFIGURATION VARIABLES ] ---
-const TOTAL_BOTS      = 40;    // How many soldiers to deploy
+const TOTAL_BOTS      = 30;    // How many soldiers to deploy
 const SESSION_LENGTH  = 600; // How long they stay (in milliseconds). 60000 = 1 minute.
 const REJOIN_DELAY    = 0;  // How long to wait before rejoining after leaving (5 seconds)
 const DEPLOY_SPACING  = 0;   // Delay between each bot joining to prevent server kicks
