@@ -1,3 +1,117 @@
+const WebSocket = require('ws');
+
+// --- GUN CONSTANTS (JOIN PACKETS) ---
+const GUNS = {
+    COMBAT:   '0387010205', // Combat Assault Rifle + Magnum
+    SHOTGUN:  '0387050205', // Shotgun
+    TACTICAL: '',           
+    SURGE:    '',           
+    ELITE:    '',           
+    LSMG:     '',           
+    CSMG:     '',           
+    LSR:      '',           
+    HSR:      ''            
+};
+
+
+// ctg-asia: OSC2E
+
+// ffa-asia: VdmVM, IE4Sm
+// ffa-eu: pQ9Mc, BI1EU, 8HtM2, ziwde
+// ffa-east: gcmeE
+
+
+
+
+// --- SETTINGS (Adjust these) ---
+const SERVER_URL    = 'wss://game-server-ziwde.voxiom.io'; 
+const JOIN_HEX      = GUNS.SHOTGUN; 
+
+const TOTAL_BOTS     = 40;    // Number of bots to spawn
+const STAY_DURATION  = 2000;  // How long (ms) bots stay in game
+const RESTART_DELAY  = 60;   // Delay (ms) before a bot rejoins after leaving
+const DEPLOY_GAP     = 60;   // Delay (ms) between each bot joining
+const JUMP_SPEED     = 40;    // Kept from original script
+
+// --- PACKETS ---
+const JUMP_HEX    = '00000023f5c0430dbcbddd400d460f88bf7f7f0001'; 
+const FORWARD_HEX = '0000000247bfd482aebe4b890d440ff78c7f7f0002'; 
+const STOP_HEX    = '0000000247bfd482aebe4b890d440ff78c7f7f0000';
+
+function deploySoldier(id) {
+    const ws = new WebSocket(SERVER_URL, {
+        headers: { 'Origin': 'https://voxiom.io' }
+    });
+
+    let moveInterval;
+
+    ws.on('open', () => {
+        ws.send('40'); // Socket.io handshake
+
+        setTimeout(() => {
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(Buffer.from(JOIN_HEX, 'hex'));
+                console.log(`[+] Soldier #${id} DEPLOYED`);
+
+                // Start the fast nudge to unblock spawn point
+                setTimeout(() => {
+                    if (ws.readyState === WebSocket.OPEN) {
+                        console.log(`[->] Soldier #${id} MOVING FORWARD: Clearing spawn area`);
+                        
+                        moveInterval = setInterval(() => {
+                            if (ws.readyState === WebSocket.OPEN) {
+                                ws.send(Buffer.from(FORWARD_HEX, 'hex'));
+                            }
+                        }, 20); // Sending fast to ensure collision unblocks
+
+                        // Stop moving after 300ms
+                        setTimeout(() => {
+                            clearInterval(moveInterval);
+                            if (ws.readyState === WebSocket.OPEN) {
+                                ws.send(Buffer.from(STOP_HEX, 'hex'));
+                                console.log(`[!] Soldier #${id} STOPPED: Position secured`);
+                            }
+                        }, 300);
+                    }
+                }, 200); 
+            }
+        }, 1000);
+
+        // STAY DURATION: Bots leave after this amount of time
+        setTimeout(() => {
+            if (ws.readyState === WebSocket.OPEN) {
+                console.log(`[-] Soldier #${id} STAY_DURATION reached. Leaving...`);
+                ws.close();
+            }
+        }, STAY_DURATION);
+    });
+
+    ws.on('close', () => {
+        clearInterval(moveInterval);
+        // RESTART DELAY: How long to wait before looping back in
+        setTimeout(() => deploySoldier(id), RESTART_DELAY);
+    });
+
+    ws.on('error', (err) => {
+        clearInterval(moveInterval);
+        console.log(`[!] Soldier #${id} Error: ${err.message}`);
+    });
+}
+
+// Start the Factory
+console.log(`Starting High-Speed Spawn: ${TOTAL_BOTS} bots | Stay: ${STAY_DURATION}ms | Restart: ${RESTART_DELAY}ms`);
+for (let i = 1; i <= TOTAL_BOTS; i++) {
+    setTimeout(() => deploySoldier(i), i * DEPLOY_GAP);
+}
+
+
+
+
+
+
+
+
+
 // const WebSocket = require('ws');
 
 // // --- SETTINGS (Change these only) ---
@@ -316,77 +430,77 @@
 
 
 
-const WebSocket = require('ws');
+// const WebSocket = require('ws');
 
-// --- [ 1. CONFIGURATION VARIABLES ] ---
-const TOTAL_BOTS      = 40;    // How many soldiers to deploy
-const SESSION_LENGTH  = 600; // How long they stay (in milliseconds). 60000 = 1 minute.
-const REJOIN_DELAY    = 1;  // How long to wait before rejoining after leaving (5 seconds)
-const DEPLOY_SPACING  = 1;   // Delay between each bot joining to prevent server kicks
+// // --- [ 1. CONFIGURATION VARIABLES ] ---
+// const TOTAL_BOTS      = 40;    // How many soldiers to deploy
+// const SESSION_LENGTH  = 600; // How long they stay (in milliseconds). 60000 = 1 minute.
+// const REJOIN_DELAY    = 1;  // How long to wait before rejoining after leaving (5 seconds)
+// const DEPLOY_SPACING  = 1;   // Delay between each bot joining to prevent server kicks
 
-// --- [ 2. GAME DATA ] ---
-const SERVER_URL      = 'wss://game-server-CABbs.voxiom.io'; 
-const JOIN_HEX        = '0387010205';
-const BASE_HEX        = '00000022e03fcd35ddbfc90fdb460b28007f7f0000';
-const SELECT_4_HEX    = '0000001466bf0320cbbf812dfb45a3135e7f7f010003';
-const TICK_RATE       = 60; 
+// // --- [ 2. GAME DATA ] ---
+// const SERVER_URL      = 'wss://game-server-CABbs.voxiom.io'; 
+// const JOIN_HEX        = '0387010205';
+// const BASE_HEX        = '00000022e03fcd35ddbfc90fdb460b28007f7f0000';
+// const SELECT_4_HEX    = '0000001466bf0320cbbf812dfb45a3135e7f7f010003';
+// const TICK_RATE       = 60; 
 
-function deploySoldier(id) {
-    console.log(`[*] Soldier #${id} preparing for deployment...`);
+// function deploySoldier(id) {
+//     console.log(`[*] Soldier #${id} preparing for deployment...`);
     
-    const ws = new WebSocket(SERVER_URL, {
-        headers: { 'Origin': 'https://voxiom.io' }
-    });
+//     const ws = new WebSocket(SERVER_URL, {
+//         headers: { 'Origin': 'https://voxiom.io' }
+//     });
 
-    let toggle = false;
-    let brain;
-    let sessionTimer;
+//     let toggle = false;
+//     let brain;
+//     let sessionTimer;
 
-    ws.on('open', () => {
-        ws.send('40'); 
+//     ws.on('open', () => {
+//         ws.send('40'); 
 
-        setTimeout(() => {
-            if (ws.readyState === WebSocket.OPEN) {
-                ws.send(Buffer.from(JOIN_HEX, 'hex'));
-                console.log(`[+] Soldier #${id} DEPLOYED. Stay time: ${SESSION_LENGTH / 1000}s`);
+//         setTimeout(() => {
+//             if (ws.readyState === WebSocket.OPEN) {
+//                 ws.send(Buffer.from(JOIN_HEX, 'hex'));
+//                 console.log(`[+] Soldier #${id} DEPLOYED. Stay time: ${SESSION_LENGTH / 1000}s`);
 
-                // Force slot 4
-                ws.send(Buffer.from(SELECT_4_HEX, 'hex'));
+//                 // Force slot 4
+//                 ws.send(Buffer.from(SELECT_4_HEX, 'hex'));
 
-                // ACTION LOOP (Jumping & Placing)
-                brain = setInterval(() => {
-                    if (ws.readyState === WebSocket.OPEN) {
-                        let packet = toggle ? BASE_HEX.slice(0, -1) + "2" : BASE_HEX.slice(0, -1) + "3";
-                        ws.send(Buffer.from(packet, 'hex'));
-                        ws.send(Buffer.from(SELECT_4_HEX, 'hex'));
-                        toggle = !toggle;
-                    }
-                }, TICK_RATE);
+//                 // ACTION LOOP (Jumping & Placing)
+//                 brain = setInterval(() => {
+//                     if (ws.readyState === WebSocket.OPEN) {
+//                         let packet = toggle ? BASE_HEX.slice(0, -1) + "2" : BASE_HEX.slice(0, -1) + "3";
+//                         ws.send(Buffer.from(packet, 'hex'));
+//                         ws.send(Buffer.from(SELECT_4_HEX, 'hex'));
+//                         toggle = !toggle;
+//                     }
+//                 }, TICK_RATE);
 
-                // SESSION TIMER (When they leave)
-                sessionTimer = setTimeout(() => {
-                    console.log(`[!] Soldier #${id} session expired. Leaving...`);
-                    ws.close();
-                }, SESSION_LENGTH);
-            }
-        }, 1200);
-    });
+//                 // SESSION TIMER (When they leave)
+//                 sessionTimer = setTimeout(() => {
+//                     console.log(`[!] Soldier #${id} session expired. Leaving...`);
+//                     ws.close();
+//                 }, SESSION_LENGTH);
+//             }
+//         }, 1200);
+//     });
 
-    ws.on('close', () => {
-        // Clean up loops
-        clearInterval(brain);
-        clearTimeout(sessionTimer);
+//     ws.on('close', () => {
+//         // Clean up loops
+//         clearInterval(brain);
+//         clearTimeout(sessionTimer);
         
-        // REJOIN LOGIC
-        console.log(`[-] Soldier #${id} disconnected. Rejoining in ${REJOIN_DELAY / 1000}s...`);
-        setTimeout(() => deploySoldier(id), REJOIN_DELAY);
-    });
+//         // REJOIN LOGIC
+//         console.log(`[-] Soldier #${id} disconnected. Rejoining in ${REJOIN_DELAY / 1000}s...`);
+//         setTimeout(() => deploySoldier(id), REJOIN_DELAY);
+//     });
 
-    ws.on('error', () => {});
-}
+//     ws.on('error', () => {});
+// }
 
-// --- [ 3. START THE FACTORY ] ---
-console.log(`Starting Soldier Factory...`);
-for (let i = 1; i <= TOTAL_BOTS; i++) {
-    setTimeout(() => deploySoldier(i), i * DEPLOY_SPACING);
-}
+// // --- [ 3. START THE FACTORY ] ---
+// console.log(`Starting Soldier Factory...`);
+// for (let i = 1; i <= TOTAL_BOTS; i++) {
+//     setTimeout(() => deploySoldier(i), i * DEPLOY_SPACING);
+// }
